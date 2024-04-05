@@ -6,9 +6,11 @@ import re
 import pandas as pd
 
 master_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94'
+
 domain = urlparse(master_url).netloc
 
 r = requests.get(master_url)
+
 soup = BeautifulSoup(r.content, 'html.parser')
 s = soup.find('div', class_='c-view')
 content = s.find_all(class_='c-teaser__row')
@@ -18,7 +20,7 @@ for c in content:
     url_list.append("https://" + domain + c.find('a')['href'])
 
 
-# url, date, code, title, TTP
+# master_list must contain: url, date, code, title, TTP
 df_old = pd.read_csv("db.csv", sep=';') if os.path.isfile("db.csv") else None
 master_list = []
 for url in url_list:
