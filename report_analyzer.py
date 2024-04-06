@@ -7,6 +7,9 @@ from urllib.parse import urlparse
 import re
 from pypdf import PdfReader
 
+def is_string_in_text(string, text):
+	return True if re.compile(r'\b({0})\b'.format(string)).search(text) is not None else False
+
 out_template = {
     "name" : "",
     "versions" : {
@@ -70,17 +73,17 @@ def url_valid(url):
 def FillInputBuffer(input):
 	# Check if input is url
 	if url_valid(input):
-		print("Contacting url: " + input)
+		#print("Contacting url: " + input)
 		return requests.get(input).text
 	# If not, check if is txt
 	elif bool(re.search('\w+(.)txt$', input)):
-		print("Using text file: " + input)
+		#print("Using text file: " + input)
 		with open(input) as f:
 			s = f.read()
 			return s
 	# Else check if is PDF
 	elif bool(re.search('\w+(.)pdf$', input)):
-		print("Using PDF file: " + input)
+		#print("Using PDF file: " + input)
 		reader = PdfReader(input)
 		buf = ""
 		for page in reader.pages:
@@ -93,18 +96,18 @@ def FillInputBuffer(input):
 
 def FindTechniques(input, techniques, search_type):
 	df = pd.read_csv(techniques)
-	print("---FOUND TECHNIQUES IN SOURCE---")
+	#print("---FOUND TECHNIQUES IN SOURCE---")
 	found_techniques = []
 	for i in range(0, df.shape[0]):
 		if search_type == 'id':
-			selected_index = i if df.iat[i, 0] in input else -1
+			selected_index = i if is_string_in_text(df.iat[i, 0], input) else -1
 		elif search_type == 'name':
-			selected_index = i if df.iat[i, 1] in input else -1
+			selected_index = i if is_string_in_text(df.iat[i, 1], input) else -1
 		else:
-			selected_index = i if df.iat[i, 0] in input or df.iat[i, 1] in input else -1
+			selected_index = i if is_string_in_text(df.iat[i, 0], input) or is_string_in_text(df.iat[i, 1], input) else -1
 
 		if selected_index != -1:
-			print("- " + df.iat[selected_index, 1] + " (" + df.iat[selected_index, 0] + ")")
+			#print("- " + df.iat[selected_index, 1] + " (" + df.iat[selected_index, 0] + ")")
 			found_techniques.append(df.iat[selected_index, 0])
 	return found_techniques
 
