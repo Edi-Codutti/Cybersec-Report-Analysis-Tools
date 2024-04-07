@@ -141,7 +141,8 @@ def main():
 	)
     parser.add_argument('-i', nargs='+', help='Input of the program. Can be either an URL or a path to a PDF file or txt file')
     parser.add_argument('-m', choices=['e', 'm', 'i'], default='e', help='Choose the layer matrix from (e)nterprise, (m)obile or (i)cs')
-    parser.add_argument('-o', help='Specifies layer name and output filename. If not specified the layer will be called "layer" and the output will be printed on stdout')
+    parser.add_argument('-o', help='Specifies output filename. If not specified the output will be printed on stdout')
+    parser.add_argument('-l', help='Specifies layer name. If not specified the layer will be called "layer"')
     parser.add_argument('-c', type=int, nargs=3, choices=range(0, 256), default=[255, 255, 0], metavar='[0-255]', help='Specifies the color of the cells')
     parser.add_argument('-s', choices=['id', 'name', 'both'], default='both', help='Search in the text by technique ID, by name or both')
     parser.add_argument('-t', required=True, help='Specify a CSV file with the techniques to search in the report')
@@ -155,12 +156,12 @@ def main():
         tmp = FindTechniques(inbuf, options['t'], options['s'])
         techniques = list(set(techniques + tmp))
     
-    name = options['o'] if options['o'] is not None else 'layer'
+    name = options['l'] if options['l'] is not None else 'layer'
     layer = BuildLayer(options['m'], name, techniques, color)
 	
     if options['o'] is not None:
         with open(options['o']+".json", 'w') as f:
-            json.dump(layer, f, indent=4)
+            json.dump(layer, f)
     else:
         print(json.dump(layer, sys.stdout))
 
