@@ -8,6 +8,10 @@ from pathlib import Path
 import argparse
 import dateutil.parser
 
+master_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94'
+
+out_dir_layers = Path("ScraperLayers")
+
 def is_string_in_text(string, text):
 	return True if re.compile(r'\b({0})\b'.format(string)).search(text) is not None else False
 
@@ -65,9 +69,94 @@ def infer_matrix(text):
 
     return matrix_list
 
-master_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94'
+def gather_info(url, T_search, t_search):
+    r = requests.get(url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    date = soup.find('div', class_=['c-field--name-field-release-date', 'c-field--name-field-last-updated']).find('div', class_='c-field__content').find('time').string
+    date = dateutil.parser.parse(date).strftime('%d/%m/%Y')
+    id = soup.find('div', class_='c-field--name-field-alert-code').find('div', class_='c-field__content').string.replace(" ", "")
+    title = soup.find('h1', class_='c-page-title__title').find('span').string
+    text = soup.get_text()
 
-out_dir_layers = Path("ScraperLayers")
+    # set matrix type(s)
+    matrix_type = infer_matrix(text)
+    #print("Inferred matrix: " + str(matrix_type))
+
+    tactics_list = [[], [], []]
+    techniques_list = [[], [], []]
+
+    # build Navigator layer(s)
+    for m in matrix_type:
+        if m == 'enterprise':
+            matrix_type_index = 0
+            tactics_file = "TTLists/enterprise_tactics.csv"
+            techniques_file = "TTLists/enterprise_techniques.csv"
+        elif m == 'ics':
+            matrix_type_index = 1
+            tactics_file = "TTLists/ics_tactics.csv"
+            techniques_file = "TTLists/ics_techniques.csv"
+        elif m == 'mobile':
+            matrix_type_index = 2
+            tactics_file = "TTLists/mobile_tactics.csv"
+            techniques_file = "TTLists/mobile_techniques.csv"
+    
+        tactics_dataset = pd.read_csv(Path(tactics_file))
+        techniques_dataset = pd.read_csv(Path(techniques_file))
+
+        #find all tactics
+        #print("---FOUND TACTICS (" + m + ") ---")
+        for i in range(0, tactics_dataset.shape[0]):
+            if T_search == 'id':
+                if is_string_in_text(tactics_dataset.iat[i, 0], text):
+                    tactics_list[matrix_type_index].append(tactics_dataset.iat[i, 0])
+                    #print(" - " + tactics_dataset.iat[i, 0] + " (" + tactics_dataset.iat[i, 1] + ")")
+            elif T_search == 'name':
+                if is_string_in_text(tactics_dataset.iat[i, 1], text):
+                    tactics_list[matrix_type_index].append(tactics_dataset.iat[i, 0])
+                    #print(" - " + tactics_dataset.iat[i, 0] + " (" + tactics_dataset.iat[i, 1] + ")")
+            else:
+                if is_string_in_text(tactics_dataset.iat[i, 0], text) or is_string_in_text(tactics_dataset.iat[i, 1], text):
+                    tactics_list[matrix_type_index].append(tactics_dataset.iat[i, 0])
+                    #print(" - " + tactics_dataset.iat[i, 0] + " (" + tactics_dataset.iat[i, 1] + ")")
+        
+        # find all techniques
+        #print("---FOUND TECHNIQUES (" + m + ") ---")
+        for i in range(0, techniques_dataset.shape[0]):
+            if t_search == 'id':
+                if is_string_in_text(techniques_dataset.iat[i, 0], text):
+                    techniques_list[matrix_type_index].append(techniques_dataset.iat[i, 0])
+                    #print(" - " + techniques_dataset.iat[i, 0] + " (" + techniques_dataset.iat[i, 1] + ")")
+            elif t_search == 'name':
+                if is_string_in_text(techniques_dataset.iat[i, 1], text):
+                    techniques_list[matrix_type_index].append(techniques_dataset.iat[i, 0])
+                    #print(" - " + techniques_dataset.iat[i, 0] + " (" + techniques_dataset.iat[i, 1] + ")")
+            else:
+                if is_string_in_text(techniques_dataset.iat[i, 0], text) or is_string_in_text(techniques_dataset.iat[i, 1], text):
+                    techniques_list[matrix_type_index].append(techniques_dataset.iat[i, 0])
+                    #print(" - " + techniques_dataset.iat[i, 0] + " (" + techniques_dataset.iat[i, 1] + ")")
+
+        # build layer, but only if there are found techniques
+        if techniques_list[matrix_type_index]:
+            os.makedirs(out_dir_layers, exist_ok=True)
+            os.system("python3 report_analyzer.py -i " + url
+                    + " -m " + m[0]
+                    + " -l " + id + "-" + m
+                    + " -o " + str(out_dir_layers / (id + "-" + m))
+                    + " -t " + techniques_file
+                    + " -s " + t_search)
+    
+    layer = [None, None, None]
+    for m_idx, m in enumerate(['enterprise', 'ics', 'mobile']):
+        filename = out_dir_layers / (id + "-" + m + ".json")
+        if os.path.isfile(filename):
+            with open(filename) as f:
+                layer[m_idx] = f.read()
+    
+    return [id, title, date,url, tuple(matrix_type),
+            tuple(tactics_list[0]), tuple(tactics_list[1]), tuple(tactics_list[2]),
+            tuple(techniques_list[0]), tuple(techniques_list[1]), tuple(techniques_list[2]),
+            layer[0], layer[1], layer[2]]
+        
 
 def main():
     parser = argparse.ArgumentParser(
@@ -107,104 +196,8 @@ def main():
 
         for i_url, url in enumerate(url_list):
             print("    Contacted url: " + url + " (" + str(i_url+1) + "/" + str(urls_in_page) + ")")
-            
-            r = requests.get(url)
-            soup = BeautifulSoup(r.content, 'html.parser')
-            date = soup.find('div', class_=['c-field--name-field-release-date', 'c-field--name-field-last-updated']).find('div', class_='c-field__content').find('time').string
-            date = dateutil.parser.parse(date).strftime('%d/%m/%Y')
-            id = soup.find('div', class_='c-field--name-field-alert-code').find('div', class_='c-field__content').string.replace(" ", "")
-            title = soup.find('h1', class_='c-page-title__title').find('span').string
-            text = soup.get_text()
+            master_list.append(gather_info(url, options['T'], options['t']))
 
-            # set matrix type(s)
-            matrix_type = infer_matrix(text)
-            #print("Inferred matrix: " + str(matrix_type))
-
-            tactics_list = [[], [], []]
-            techniques_list = [[], [], []]
-
-            # build Navigator layer(s)
-            for m in matrix_type:
-                if m == 'enterprise':
-                    matrix_type_index = 0
-                    tactics_file = "TTLists/enterprise_tactics.csv"
-                    techniques_file = "TTLists/enterprise_techniques.csv"
-                elif m == 'ics':
-                    matrix_type_index = 1
-                    tactics_file = "TTLists/ics_tactics.csv"
-                    techniques_file = "TTLists/ics_techniques.csv"
-                elif m == 'mobile':
-                    matrix_type_index = 2
-                    tactics_file = "TTLists/mobile_tactics.csv"
-                    techniques_file = "TTLists/mobile_techniques.csv"
-            
-                tactics_dataset = pd.read_csv(Path(tactics_file))
-                techniques_dataset = pd.read_csv(Path(techniques_file))
-
-                #find all tactics
-                #print("---FOUND TACTICS (" + m + ") ---")
-                for i in range(0, tactics_dataset.shape[0]):
-                    if options['T'] == 'id':
-                        if is_string_in_text(tactics_dataset.iat[i, 0], text):
-                            tactics_list[matrix_type_index].append(tactics_dataset.iat[i, 0])
-                            #print(" - " + tactics_dataset.iat[i, 0] + " (" + tactics_dataset.iat[i, 1] + ")")
-                    elif options['T'] == 'name':
-                        if is_string_in_text(tactics_dataset.iat[i, 1], text):
-                            tactics_list[matrix_type_index].append(tactics_dataset.iat[i, 0])
-                            #print(" - " + tactics_dataset.iat[i, 0] + " (" + tactics_dataset.iat[i, 1] + ")")
-                    else:
-                        if is_string_in_text(tactics_dataset.iat[i, 0], text) or is_string_in_text(tactics_dataset.iat[i, 1], text):
-                            tactics_list[matrix_type_index].append(tactics_dataset.iat[i, 0])
-                            #print(" - " + tactics_dataset.iat[i, 0] + " (" + tactics_dataset.iat[i, 1] + ")")
-                
-                # find all techniques
-                #print("---FOUND TECHNIQUES (" + m + ") ---")
-                for i in range(0, techniques_dataset.shape[0]):
-                    if options['t'] == 'id':
-                        if is_string_in_text(techniques_dataset.iat[i, 0], text):
-                            techniques_list[matrix_type_index].append(techniques_dataset.iat[i, 0])
-                            #print(" - " + techniques_dataset.iat[i, 0] + " (" + techniques_dataset.iat[i, 1] + ")")
-                    elif options['t'] == 'name':
-                        if is_string_in_text(techniques_dataset.iat[i, 1], text):
-                            techniques_list[matrix_type_index].append(techniques_dataset.iat[i, 0])
-                            #print(" - " + techniques_dataset.iat[i, 0] + " (" + techniques_dataset.iat[i, 1] + ")")
-                    else:
-                        if is_string_in_text(techniques_dataset.iat[i, 0], text) or is_string_in_text(techniques_dataset.iat[i, 1], text):
-                            techniques_list[matrix_type_index].append(techniques_dataset.iat[i, 0])
-                            #print(" - " + techniques_dataset.iat[i, 0] + " (" + techniques_dataset.iat[i, 1] + ")")
-
-                # build layer, but only if there are found techniques
-                if techniques_list[matrix_type_index]:
-                    os.makedirs(out_dir_layers, exist_ok=True)
-                    os.system("python3 report_analyzer.py -i " + url
-                            + " -m " + m[0]
-                            + " -l " + id + "-" + m
-                            + " -o " + str(out_dir_layers / (id + "-" + m))
-                            + " -t " + techniques_file
-                            + " -s " + options['t'])
-            
-            layer = [None, None, None]
-            for m_idx, m in enumerate(['enterprise', 'ics', 'mobile']):
-                filename = out_dir_layers / (id + "-" + m + ".json")
-                if os.path.isfile(filename):
-                    with open(filename) as f:
-                        layer[m_idx] = f.read()
-            
-            master_list.append([id,
-                                title,
-                                date,
-                                url,
-                                tuple(matrix_type),
-                                tuple(tactics_list[0]),
-                                tuple(tactics_list[1]),
-                                tuple(tactics_list[2]),
-                                tuple(techniques_list[0]),
-                                tuple(techniques_list[1]),
-                                tuple(techniques_list[2]),
-                                layer[0],
-                                layer[1],
-                                layer[2]])
-        
     df_new = pd.DataFrame(master_list,
                             columns=['Code',
                                     'Title',
