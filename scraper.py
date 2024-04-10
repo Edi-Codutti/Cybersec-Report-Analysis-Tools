@@ -7,6 +7,11 @@ import pandas as pd
 from pathlib import Path
 import argparse
 import dateutil.parser
+from joblib import Parallel, delayed
+import sys
+from tqdm import tqdm
+
+sys.setrecursionlimit(30000)
 
 master_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94'
 
@@ -178,25 +183,27 @@ def main():
     href = soup.find('a', class_='c-pager__link--last')['href']
     num_of_pages = int(re.search('page=(\d+)', href).group(1))
     domain = urlparse(master_url).netloc
-    for i in range(0, num_of_pages+1):
-        page_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94&page=' + str(i)
-        print("Page url: " + page_url + " (" + str(i+1) + "/" + str(num_of_pages+1) + ")")
+    with Parallel(n_jobs=-1, backend='multiprocessing') as parallel:
+        for i in tqdm(range(0, num_of_pages+1)):
+            page_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94&page=' + str(i)
+            tqdm.write("Page url: " + page_url)
 
-        r = requests.get(page_url)
+            r = requests.get(page_url)
 
-        soup = BeautifulSoup(r.content, 'html.parser')
-        s = soup.find('div', class_='c-view')
-        content = s.find_all(class_='c-teaser__row')
+            soup = BeautifulSoup(r.content, 'html.parser')
+            s = soup.find('div', class_='c-view')
+            content = s.find_all(class_='c-teaser__row')
 
-        url_list = []
-        for c in content:
-            url_list.append("https://" + domain + c.find('a')['href'])
+            url_list = []
+            for c in content:
+                url_list.append("https://" + domain + c.find('a')['href'])
 
-        urls_in_page = len(url_list)
+            page_list = parallel(delayed(gather_info)(url, options['T'], options['t']) for url in url_list)
+            master_list += page_list
 
-        for i_url, url in enumerate(url_list):
-            print("    Contacted url: " + url + " (" + str(i_url+1) + "/" + str(urls_in_page) + ")")
-            master_list.append(gather_info(url, options['T'], options['t']))
+            """for i_url, url in enumerate(url_list):
+                print("    Contacted url: " + url + " (" + str(i_url+1) + "/" + str(urls_in_page) + ")")
+                master_list.append(gather_info(url, options['T'], options['t']))"""
 
     df_new = pd.DataFrame(master_list,
                             columns=['Code',
