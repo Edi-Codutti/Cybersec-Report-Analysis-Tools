@@ -186,7 +186,6 @@ def main():
     with Parallel(n_jobs=-1, backend='multiprocessing') as parallel:
         for i in tqdm(range(0, num_of_pages+1)):
             page_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94&page=' + str(i)
-            tqdm.write("Page url: " + page_url)
 
             r = requests.get(page_url)
 
@@ -200,10 +199,6 @@ def main():
 
             page_list = parallel(delayed(gather_info)(url, options['T'], options['t']) for url in url_list)
             master_list += page_list
-
-            """for i_url, url in enumerate(url_list):
-                print("    Contacted url: " + url + " (" + str(i_url+1) + "/" + str(urls_in_page) + ")")
-                master_list.append(gather_info(url, options['T'], options['t']))"""
 
     df_new = pd.DataFrame(master_list,
                             columns=['Code',
@@ -221,7 +216,7 @@ def main():
                                     'Layer (ICS)',
                                     'Layer (Mobile)'])
     if df_old is not None:
-        df_old = pd.concat([df_old, df_new]).drop_duplicates(keep='last').reset_index(drop=True)
+        df_old = pd.concat([df_old, df_new]).drop_duplicates(keep='last',subset=['Code']).reset_index(drop=True)
     else:
         df_old = df_new
     df_old.to_csv("db.csv", sep=';', index=False)
