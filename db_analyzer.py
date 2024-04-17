@@ -19,7 +19,7 @@ def main():
     parser.add_argument('-t', default=None, help='Tactic or technique to count. If unspecified it will count all tactics and all techniques')
     options = vars(parser.parse_args())
     database = pd.read_csv(options['i'], sep=';')
-    database['Date'] = pd.to_datetime(database['Date'])
+    database['Date'] = pd.to_datetime(database['Date'], dayfirst=True)
 
     if options['y'] != 0:
         database = database[database['Date'].dt.year == options['y']]

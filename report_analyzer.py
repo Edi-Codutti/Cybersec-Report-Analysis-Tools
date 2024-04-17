@@ -76,13 +76,13 @@ def FillInputBuffer(input):
 		#print("Contacting url: " + input)
 		return requests.get(input).text
 	# If not, check if is txt
-	elif bool(re.search('\w+(.)txt$', input)):
+	elif bool(re.search(r'\w+(.)txt$', input)):
 		#print("Using text file: " + input)
 		with open(input) as f:
 			s = f.read()
 			return s
 	# Else check if is PDF
-	elif bool(re.search('\w+(.)pdf$', input)):
+	elif bool(re.search(r'\w+(.)pdf$', input)):
 		#print("Using PDF file: " + input)
 		reader = PdfReader(input)
 		buf = ""

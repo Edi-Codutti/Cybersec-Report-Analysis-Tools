@@ -85,7 +85,6 @@ def gather_info(url, T_search, t_search):
 
     # set matrix type(s)
     matrix_type = infer_matrix(text)
-    #print("Inferred matrix: " + str(matrix_type))
 
     tactics_list = [[], [], []]
     techniques_list = [[], [], []]
@@ -109,36 +108,28 @@ def gather_info(url, T_search, t_search):
         techniques_dataset = pd.read_csv(Path(techniques_file))
 
         #find all tactics
-        #print("---FOUND TACTICS (" + m + ") ---")
         for i in range(0, tactics_dataset.shape[0]):
             if T_search == 'id':
                 if is_string_in_text(tactics_dataset.iat[i, 0], text):
                     tactics_list[matrix_type_index].append(tactics_dataset.iat[i, 0])
-                    #print(" - " + tactics_dataset.iat[i, 0] + " (" + tactics_dataset.iat[i, 1] + ")")
             elif T_search == 'name':
                 if is_string_in_text(tactics_dataset.iat[i, 1], text):
                     tactics_list[matrix_type_index].append(tactics_dataset.iat[i, 0])
-                    #print(" - " + tactics_dataset.iat[i, 0] + " (" + tactics_dataset.iat[i, 1] + ")")
             else:
                 if is_string_in_text(tactics_dataset.iat[i, 0], text) or is_string_in_text(tactics_dataset.iat[i, 1], text):
                     tactics_list[matrix_type_index].append(tactics_dataset.iat[i, 0])
-                    #print(" - " + tactics_dataset.iat[i, 0] + " (" + tactics_dataset.iat[i, 1] + ")")
         
         # find all techniques
-        #print("---FOUND TECHNIQUES (" + m + ") ---")
         for i in range(0, techniques_dataset.shape[0]):
             if t_search == 'id':
                 if is_string_in_text(techniques_dataset.iat[i, 0], text):
                     techniques_list[matrix_type_index].append(techniques_dataset.iat[i, 0])
-                    #print(" - " + techniques_dataset.iat[i, 0] + " (" + techniques_dataset.iat[i, 1] + ")")
             elif t_search == 'name':
                 if is_string_in_text(techniques_dataset.iat[i, 1], text):
                     techniques_list[matrix_type_index].append(techniques_dataset.iat[i, 0])
-                    #print(" - " + techniques_dataset.iat[i, 0] + " (" + techniques_dataset.iat[i, 1] + ")")
             else:
                 if is_string_in_text(techniques_dataset.iat[i, 0], text) or is_string_in_text(techniques_dataset.iat[i, 1], text):
                     techniques_list[matrix_type_index].append(techniques_dataset.iat[i, 0])
-                    #print(" - " + techniques_dataset.iat[i, 0] + " (" + techniques_dataset.iat[i, 1] + ")")
 
         # build layer, but only if there are found techniques
         if techniques_list[matrix_type_index]:
@@ -181,9 +172,12 @@ def main():
     r = requests.get(master_url)
     soup = BeautifulSoup(r.content, 'html.parser')
     href = soup.find('a', class_='c-pager__link--last')['href']
-    num_of_pages = int(re.search('page=(\d+)', href).group(1))
+    num_of_pages = int(re.search(r'page=(\d+)', href).group(1))
     domain = urlparse(master_url).netloc
-    with Parallel(n_jobs=-1, backend='multiprocessing') as parallel:
+
+    backend = 'multiprocessing' if os.name == 'posix' else 'threading'
+
+    with Parallel(n_jobs=-1, backend=backend) as parallel:
         for i in tqdm(range(0, num_of_pages+1)):
             page_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94&page=' + str(i)
 
