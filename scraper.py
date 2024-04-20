@@ -10,6 +10,7 @@ import dateutil.parser
 from joblib import Parallel, delayed
 import sys
 from tqdm import tqdm
+import subprocess
 
 sys.setrecursionlimit(30000)
 
@@ -134,12 +135,13 @@ def gather_info(url, T_search, t_search):
         # build layer, but only if there are found techniques
         if techniques_list[matrix_type_index]:
             os.makedirs(out_dir_layers, exist_ok=True)
-            os.system("python3 report_analyzer.py -i " + url
-                    + " -m " + m[0]
-                    + " -l " + id + "-" + m
-                    + " -o " + str(out_dir_layers / (id + "-" + m))
-                    + " -t " + techniques_file
-                    + " -s " + t_search)
+            subprocess.call(["python3", "report_analyzer.py",
+                            "-i", url,
+                            "-m", m[0],
+                            "-l", "".join([id, "-", m]),
+                            "-o", str(out_dir_layers / (id + "-" + m)),
+                            "-t", techniques_file,
+                            "-s", t_search])
     
     layer = [None, None, None]
     for m_idx, m in enumerate(['enterprise', 'ics', 'mobile']):
