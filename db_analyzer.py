@@ -47,10 +47,10 @@ def main():
     
     for list in res_list:
         if list:
-            res_df = pd.DataFrame(list, columns=['TT', 'Year', 'No. of occurrences', 'Total reports', 'Percentage'])
+            res_df = pd.DataFrame(list, columns=['Tactic/Technique', 'Year', 'No. of occurrences', 'Total reports', 'Percentage'])
             res_df = res_df.sort_values('Percentage', ascending=False)
             with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.precision', 2):
-                print(res_df, end='\n\n')
+                print(res_df.to_string(index=False), end='\n\n')
 
 if __name__ == '__main__':
     main()

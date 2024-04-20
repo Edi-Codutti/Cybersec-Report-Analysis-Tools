@@ -139,7 +139,7 @@ def main():
         prog='report_analyzer',
         description='Reads a report and returns a MITRE ATT&CK Navigator Layer'
 	)
-    parser.add_argument('-i', nargs='+', help='Input of the program. Can be either an URL or a path to a PDF file or txt file')
+    parser.add_argument('-i', nargs='+', help='Input (or inputs) of the program. They can be either an URL or a path to a PDF file or txt file separated by a whitespace')
     parser.add_argument('-m', choices=['e', 'm', 'i'], default='e', help='Choose the layer matrix from (e)nterprise, (m)obile or (i)cs')
     parser.add_argument('-o', help='Specifies output filename. If not specified the output will be printed on stdout')
     parser.add_argument('-l', help='Specifies layer name. If not specified the layer will be called "layer"')
