@@ -32,7 +32,7 @@ def main():
     else:
         tactics = pd.read_csv(str(TTDir / TTFiles[0]))
         techniques = pd.read_csv(str(TTDir / TTFiles[1]))
-        TTList = [tactics['ID'].to_list(), techniques['ID.1'].to_list()]
+        TTList = [tactics['ID'].to_list(), techniques['ID'].to_list()]
 
     res_list = [[], []]
     for idx, list in enumerate(TTList):

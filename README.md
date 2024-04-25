@@ -42,8 +42,8 @@ This script contacts the MITRE website in order to fetch tactics and/or techniqu
 A MITRE matrix must be specified and the generated file is called "*[matrix_type]_tactics.csv*" or "*[matrix_type]_techniques.csv*", where *[matrix_type]* is one between "enterprise", "mobile" or "ics"
 
 Here are the options you can use:
-- `-t`: Choose which **technique** dictionary you want to build from enterprise (`e`), mobile (`m`), ics (`i`) or all (`a`), which is the default. In case 'all' is selected, an extra file containing all techniques from all matrices called "compendium_techniques.csv" is created
-- `-T`: Choose which **tactic** dictionary you want to build from enterprise (`e`), mobile (`m`), ics (`i`) or all (`a`), which is the default. In case 'all' is selected, an extra file containing all tactics from all matrices called "compendium_tactics.csv" is created
+- `-m`: Choose a matrix type among (e)nterprise, (m)obile, (i)cs or (a)ll . In case 'all' is selected (which is the default case), an extra file containing all techniques and/or all tactics from all matrices called `compendium_techniques.csv`/`compendium_tactics.csv` is created
+- `-g`: Choose wether to generate dictionaries for techniques (t), tactics (T) or (a)ll. 'All' is the default case
 - `-h`, `--help`: Prints a help screen and exits
 
 I recommend to launch this script with the default option values before proceeding with the execution of the other scripts in this project
