@@ -1,3 +1,13 @@
+"""
+MITRE License
+-------------
+The MITRE Corporation (MITRE) hereby grants you a non-exclusive, royalty-free license to use ATT&CK® for research, 
+development, and commercial purposes. Any copy you make for such purposes is authorized provided that you reproduce
+MITRE's copyright designation and this license in any such copy.
+
+"© 2024 The MITRE Corporation. This work is reproduced and distributed with the permission of The MITRE Corporation."
+"""
+
 import requests
 from stix2 import MemoryStore, Filter
 import pandas as pd
