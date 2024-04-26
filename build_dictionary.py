@@ -89,7 +89,7 @@ def main():
     parser.add_argument('-m', choices=['e', 'm', 'i', 'a'], default='a', help='Choose a matrix type among (e)nterprise, (m)obile, (i)cs or (a)ll')
     parser.add_argument('-g', choices=['t', 'T', 'a'], default='a', help='Choose wether to generate dictionaries for techniques (t), tactics (T) or (a)ll')
     options = vars(parser.parse_args())
-    if options['d'] == 'a':
+    if options['m'] == 'a':
         for domain in mitre_domains:
             build_dictionary(domain, options['g'])
         compendium = pd.concat([
