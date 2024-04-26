@@ -104,11 +104,11 @@ def main():
             pd.read_csv(str(dirname / "ics_tactics.csv")),
             ]).drop_duplicates().reset_index(drop=True)
         compendium.to_csv(str(dirname / "compendium_tactics.csv"), index=False)
-    elif options['d'] == 'e':
+    elif options['m'] == 'e':
         build_dictionary(mitre_domains[0], options['g'])
-    elif options['d'] == 'm':
+    elif options['m'] == 'm':
         build_dictionary(mitre_domains[1], options['g'])
-    elif options['d'] == 'i':
+    elif options['m'] == 'i':
         build_dictionary(mitre_domains[2], options['g'])
 
 if __name__ == '__main__':
