@@ -13,8 +13,8 @@ def is_string_in_text(string, text):
 out_template = {
     "name" : "",
     "versions" : {
-        "attack": "14",
-		"navigator": "4.9.4",
+        "attack": "15",
+		"navigator": "4.9.5",
 		"layer": "4.5"
     },
     "domain": "enterprise-attack",
