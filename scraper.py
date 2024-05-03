@@ -135,7 +135,7 @@ def gather_info(url, T_search, t_search):
         # build layer, but only if there are found techniques
         if techniques_list[matrix_type_index]:
             os.makedirs(out_dir_layers, exist_ok=True)
-            subprocess.call(["python3", "report_analyzer.py",
+            subprocess.run(["python3", "report_analyzer.py",
                             "-i", url,
                             "-m", m[0],
                             "-l", "".join([id, "-", m]),
