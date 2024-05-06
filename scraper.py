@@ -192,15 +192,14 @@ def main():
         for c in content:
             url_list.append("https://" + domain + c.find('a')['href'])
 
-        """try:
+        try:
             page_list = Parallel(n_jobs=-1, backend=backend)(delayed(gather_info)(url, options['T'], options['t']) for url in url_list)
         except:
             try:
                 page_list = Parallel(n_jobs=-1, backend='threading')(delayed(gather_info)(url, options['T'], options['t']) for url in url_list)
                 backend = 'threading'
             except:
-                page_list = [gather_info(url, options['T'], options['t']) for url in url_list]"""
-        page_list = [gather_info(url, options['T'], options['t']) for url in url_list]
+                page_list = [gather_info(url, options['T'], options['t']) for url in url_list]
         
         master_list += page_list
 
