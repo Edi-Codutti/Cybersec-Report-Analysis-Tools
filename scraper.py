@@ -179,22 +179,26 @@ def main():
 
     backend = 'multiprocessing' if os.name == 'posix' else 'threading'
 
-    with Parallel(n_jobs=-1, backend=backend) as parallel:
-        for i in tqdm(range(0, num_of_pages+1)):
-            page_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94&page=' + str(i)
+    for i in tqdm(range(0, num_of_pages+1)):
+        page_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94&page=' + str(i)
 
-            r = requests.get(page_url)
+        r = requests.get(page_url)
 
-            soup = BeautifulSoup(r.content, 'html.parser')
-            s = soup.find('div', class_='c-view')
-            content = s.find_all(class_='c-teaser__row')
+        soup = BeautifulSoup(r.content, 'html.parser')
+        s = soup.find('div', class_='c-view')
+        content = s.find_all(class_='c-teaser__row')
 
-            url_list = []
-            for c in content:
-                url_list.append("https://" + domain + c.find('a')['href'])
+        url_list = []
+        for c in content:
+            url_list.append("https://" + domain + c.find('a')['href'])
 
-            page_list = parallel(delayed(gather_info)(url, options['T'], options['t']) for url in url_list)
-            master_list += page_list
+        try:
+            page_list = Parallel(n_jobs=-1, backend=backend)(delayed(gather_info)(url, options['T'], options['t']) for url in url_list)
+        except:
+            page_list = Parallel(n_jobs=-1, backend='threading')(delayed(gather_info)(url, options['T'], options['t']) for url in url_list)
+            backend = 'threading'
+        
+        master_list += page_list
 
     df_new = pd.DataFrame(master_list,
                             columns=['Code',
