@@ -100,3 +100,10 @@ The available options are:
 - `-y`: Year to specify for the counting. If unspecified the program will count globally
 - `-t`: Tactic or technique to count. If unspecified it will count all tactics and all techniques and sort them in descending order
 - `-h`, `--help`: Prints a help screen and exits
+ 
+# Note for MAC users
+A warning message may appear using `build_dictionary.py`, `report_analyzer.py` or `scraper.py` that says:
+
+`urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with [name of your library]. See: https://github.com/urllib3/urllib3/issues/3020`
+
+The various scripts should work anyway, but you can find discussions (and maybe possible solutions) [here](https://stackoverflow.com/questions/76476253/persisting-spacy-import-error-notopensslwarning-urllib3-v2-0-only-supports-ope) and [here](https://github.com/explosion/spaCy/discussions/12750)
