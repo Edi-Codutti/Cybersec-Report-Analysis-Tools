@@ -1,4 +1,4 @@
-# Cybersec Analysis Tools
+# MITREport Analyzer
 ## Brief introduction
 This project is composed of four python scripts, each one with its own function:
 
