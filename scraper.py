@@ -14,7 +14,7 @@ import subprocess
 
 sys.setrecursionlimit(30000)
 
-interpreter = "python" if os.name == 'nt' else "python3"
+interpreter = "py" if os.name == 'nt' else "python3"
 
 master_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94'
 
