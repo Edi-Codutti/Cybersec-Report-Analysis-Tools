@@ -14,6 +14,8 @@ import subprocess
 
 sys.setrecursionlimit(30000)
 
+interpreter = "python" if os.name == 'nt' else "python3"
+
 master_url = 'https://www.cisa.gov/news-events/cybersecurity-advisories?f%5B0%5D=advisory_type%3A94'
 
 out_dir_layers = Path("ScraperLayers")
@@ -135,7 +137,7 @@ def gather_info(url, T_search, t_search):
         # build layer, but only if there are found techniques
         if techniques_list[matrix_type_index]:
             os.makedirs(out_dir_layers, exist_ok=True)
-            subprocess.run(["python3", "report_analyzer.py",
+            subprocess.run([interpreter, "report_analyzer.py",
                             "-i", url,
                             "-m", m[0],
                             "-l", "".join([id, "-", m]),
