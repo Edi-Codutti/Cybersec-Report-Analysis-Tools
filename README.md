@@ -36,6 +36,8 @@ You can scrape the content of the home page of [CISA Cybersecurity Alerts and Ad
 
 This will generate a file called `db.csv` containing some useful information from the CISA reports at the specified page.
 
+If you want to open it, remember that the field are separated by a semicolon (';')
+
 You can then see which are the most frequent tactics and techniques mentioned in all the reports by issuing the following command:
 
 `python3 db_analyzer.py -i db.csv`
